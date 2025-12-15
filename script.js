@@ -1,68 +1,153 @@
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
-let orders = JSON.parse(localStorage.getItem('orders')) || [];
+/***********************
+  GLOBAL STATE
+************************/
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
-function login(role){
-  localStorage.setItem('role', role);
-  if(role==='restaurant') location.href='restaurant.html';
-  else location.href='index.html';
+/***********************
+  AUTH & ROLE GUARD
+************************/
+const role = localStorage.getItem("role");
+const page = window.location.pathname;
+
+// Redirect to login if not logged in
+if (!role && !page.includes("login.html")) {
+  window.location.href = "login.html";
 }
 
-function addItem(name, price, btn){
-  const pack = Number(btn.previousElementSibling.value);
-  cart.push({name, price, pack});
-  localStorage.setItem('cart', JSON.stringify(cart));
-  alert('Added to cart');
+// Customer page protection
+if (page.includes("index.html") && role && role !== "customer") {
+  document.body.innerHTML = `
+    <h2>Access Denied</h2>
+    <p>Customer access only</p>
+    <a href="login.html">Go to Login</a>
+  `;
 }
 
-function renderCart(){
-  const el = document.getElementById('cartItems');
-  if(!el) return;
+// Restaurant page protection
+if (page.includes("restaurant.html") && role && role !== "restaurant") {
+  document.body.innerHTML = `
+    <h2>Access Denied</h2>
+    <p>Restaurant access only</p>
+    <a href="login.html">Go to Login</a>
+  `;
+}
+
+/***********************
+  LOGIN
+************************/
+function login(selectedRole) {
+  localStorage.setItem("role", selectedRole);
+
+  if (selectedRole === "restaurant") {
+    window.location.href = "restaurant.html";
+  } else {
+    window.location.href = "index.html";
+  }
+}
+
+/***********************
+  LOGOUT
+************************/
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+/***********************
+  CART LOGIC
+************************/
+function addItem(name, price, btn) {
+  const packCost = Number(btn.previousElementSibling.value);
+  cart.push({ name, price, packCost });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert("Item added to cart");
+}
+
+function renderCart() {
+  const container = document.getElementById("cartItems");
+  if (!container) return;
+
   let total = 0;
-  el.innerHTML='';
-  cart.forEach(i=>{
-    total += i.price + i.pack;
-    el.innerHTML += `<p>${i.name} - ₹${i.price+i.pack}</p>`;
+  container.innerHTML = "";
+
+  cart.forEach(item => {
+    const cost = item.price + item.packCost;
+    total += cost;
+    container.innerHTML += `<p>${item.name} - ₹${cost}</p>`;
   });
-  document.getElementById('total').innerText = total;
+
+  document.getElementById("total").innerText = total;
 }
 
-function placeOrder(){
-  orders.push({items:cart, status:'Preparing'});
-  localStorage.setItem('orders', JSON.stringify(orders));
-  cart = [];
-  localStorage.removeItem('cart');
-  alert('Order placed');
-  location.href='track.html';
-}
-
-function trackOrder(){
-  const el = document.getElementById('status');
-  if(!el) return;
-  if(orders.length>0) el.innerText = orders[orders.length-1].status;
-}
-
-function restaurantView(){
-  if(localStorage.getItem('role')!=='restaurant'){
-    document.body.innerHTML='Access Denied';
+/***********************
+  ORDER LOGIC
+************************/
+function placeOrder() {
+  if (cart.length === 0) {
+    alert("Cart is empty");
     return;
   }
-  const el = document.getElementById('orders');
-  if(!el) return;
-  el.innerHTML='';
-  orders.forEach((o,i)=>{
-    el.innerHTML += `<div>
-      <p>Order #${i+1} - ${o.status}</p>
-      <button onclick="updateStatus(${i})">Mark Ready</button>
-    </div>`;
+
+  orders.push({
+    items: cart,
+    status: "Preparing"
+  });
+
+  localStorage.setItem("orders", JSON.stringify(orders));
+  cart = [];
+  localStorage.removeItem("cart");
+
+  alert("Order placed successfully!");
+  window.location.href = "track.html";
+}
+
+function trackOrder() {
+  const statusEl = document.getElementById("status");
+  if (!statusEl) return;
+
+  if (orders.length === 0) {
+    statusEl.innerText = "No active order";
+  } else {
+    statusEl.innerText = orders[orders.length - 1].status;
+  }
+}
+
+/***********************
+  RESTAURANT DASHBOARD
+************************/
+function restaurantView() {
+  const container = document.getElementById("orders");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (orders.length === 0) {
+    container.innerHTML = "<p>No orders yet</p>";
+    return;
+  }
+
+  orders.forEach((order, index) => {
+    container.innerHTML += `
+      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
+        <p><strong>Order #${index + 1}</strong></p>
+        <p>Status: ${order.status}</p>
+        <button onclick="updateStatus(${index})">Mark Ready</button>
+      </div>
+    `;
   });
 }
 
-function updateStatus(i){
-  orders[i].status='Ready for Delivery';
-  localStorage.setItem('orders', JSON.stringify(orders));
+function updateStatus(index) {
+  orders[index].status = "Ready for Delivery";
+  localStorage.setItem("orders", JSON.stringify(orders));
+  alert("Order marked Ready");
   location.reload();
 }
 
+/***********************
+  AUTO INIT
+************************/
 renderCart();
 trackOrder();
 restaurantView();
