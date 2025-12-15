@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SafeFood | Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>🍽️ SafeFood</h1>
+  <nav>
+    <a href="index.html">Menu</a>
+    <a href="cart.html">Cart</a>
+    <a href="track.html">Track Order</a>
+    <a href="login.html">Login</a>
+  </nav>
+</header>
+
+<section class="menu">
+  <h2>Food & Beverages</h2>
+
+  <div class="item">
+    <h3>Chicken Biryani</h3>
+    <p>₹250</p>
+    <select>
+      <option value="0">Standard Food Box (Free)</option>
+      <option value="20">Leak-Proof Box (+₹20)</option>
+    </select>
+    <button onclick="addItem('Chicken Biryani',250,this)">Add</button>
+  </div>
+
+  <div class="item">
+    <h3>Cold Coffee</h3>
+    <p>₹120</p>
+    <select>
+      <option value="0">Standard Cup (Free)</option>
+      <option value="20">Spill-Proof Cup (+₹20)</option>
+      <option value="40">Vacuum Sealed (+₹40)</option>
+    </select>
+    <button onclick="addItem('Cold Coffee',120,this)">Add</button>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
